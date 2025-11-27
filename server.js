@@ -1,11 +1,15 @@
 const express = require('express')
 const app = express()
 const dotenv = require('dotenv')
+dotenv.config()
+// the order is important
+
 const session = require('express-session');
 const cors = require('cors')
 const passport = require('passport')
-
-dotenv.config()
+require('./passport.Config')
+const connection=require('./connection')
+connection()
 
 app.use(cors())
 app.use(express.json())
@@ -13,7 +17,7 @@ app.use(session({
   secret: process.env.secret,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: true }
+  cookie: { secure: false }
 }));
 
 app.use(passport.initialize())
@@ -27,16 +31,22 @@ app.get('/',(req,res)=>{
 //Our Routing
 //get call
 //Login Start
-app.get('/auth/google',()=>{
-    console.log("Test1")
-})
+app.get('/auth/google',
+    // console.log("Test1")
+    passport.authenticate('google', { scope: ['profile',"email"] })
+)
 
-//Callback URL
-app.get('/auth/google/callback',()=>{
-    console.log("Test2")
-})
+//Callback URL // for suppose you get an error
+app.get('/auth/google/callback',
+    // console.log("Error")
+    passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+  }
+)
 
-app.listen(process.env.PORT,()=>{
+app.listen(process.env.PORT,
     console.log("server is running at", process.env.PORT)
-})
+)
 
