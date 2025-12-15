@@ -11,7 +11,11 @@ require('./passport.Config')
 const connection=require('./connection')
 connection()
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://localhost:5174',
+  credentials: true,
+}));//the browser will only allow this cross-origin request if we configure CORS + credentials:
+
 app.use(express.json())
 app.use(session({
   secret: process.env.secret,
@@ -25,8 +29,12 @@ app.use(passport.session())
 
 //8000
 app.get('/',(req,res)=>{
-    res.send("hello world")
+   // res.send("hello world")
+   if(!req.user)
+    return res.json({loggedIn:false})
+  res.json({loggedIn:true, user:req.user})
 })
+
 
 //Our Routing
 //get call
@@ -42,7 +50,7 @@ app.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.redirect('/');
+    res.redirect('http://localhost:5174/homepage');
   }
 )
 

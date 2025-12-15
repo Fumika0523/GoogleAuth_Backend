@@ -8,6 +8,8 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL
 },
+
+// Q: What is accessToken, refreshToken for ?
   async(accessToken, refreshToken, profile, cb)=>{
     // User.findOrCreate({ googleId: profile.id }, function (err, user) {
     //   return cb(err, user);
@@ -23,7 +25,7 @@ try{
     })
   }
   //Create
-  return cb(null,profile)  //2arg
+  return cb(null,user)  //2arg
 
 }catch(e){
   console.log(e)
@@ -32,9 +34,20 @@ try{
 )
 
 passport.serializeUser(function(user, cb) {
- return cb(null,user)
+ return cb(null,user._id)
 });
 
-passport.deserializeUser(function(user, cb) {
- return cb(null,user)
+// passport.deserializeUser(function(user, cb) {
+//  return cb(null,user)
+// });
+
+
+passport.deserializeUser(async(id, cb)=> {
+ try{
+  const user = await User.findById(id)
+  cb(null,user)
+ }catch(e){
+  cb(e,null)
+ }
 });
+
